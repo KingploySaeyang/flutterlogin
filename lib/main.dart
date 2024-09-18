@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutterlogin/page/login.dart'; // นำเข้าหน้า LoginPage
+import 'package:flutterlogin/page/login.dart';
+import 'package:flutterlogin/provider/user_provider.dart';
+import 'package:provider/provider.dart'; // นำเข้าหน้า LoginPage
 //import 'register_page.dart';
 
 void main() {
@@ -11,14 +13,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return ChangeNotifierProvider(
+      create: (context) => UserProvider(),
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
+        ),
+        home: const LoginPage(), // เริ่มต้นที่หน้า LoginPage
+        debugShowCheckedModeBanner: false, // ปิด Debug Banner
       ),
-      home: const LoginPage(), // เริ่มต้นที่หน้า LoginPage
-      debugShowCheckedModeBanner: false, // ปิด Debug Banner
     );
   }
 }
