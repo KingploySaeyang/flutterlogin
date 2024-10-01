@@ -3,8 +3,8 @@ import 'package:flutterlogin/page/home.dart'; // นำเข้าหน้า 
 import 'package:flutterlogin/page/register.dart';
 import 'package:flutterlogin/controllers/auth_service.dart';
 import 'package:flutterlogin/provider/user_provider.dart';
-// ignore: depend_on_referenced_packages
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart'; // นำเข้า Provider
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -23,38 +23,50 @@ class _LoginPageState extends State<LoginPage> {
       print('Username : ${_usernameController.text}');
       print('Password : ${_passwordController.text}');
       try {
-        // ignore: unused_local_variable
         final user = await AuthService()
             .login(_usernameController.text, _passwordController.text);
-      
-         if (!mounted) return; 
-        Provider.of<UserProvider>(context, listen : false).onLogin(user);
+        
+        if (!mounted) return; 
+        Provider.of<UserProvider>(context, listen: false).onLogin(user);
+        
+        // นำทางไปยังหน้า Home
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MyHomePage(title: 'Home Page')),
+        );
+
+        // บันทึกข้อมูลใน shared preferences
+        saveData();
       } catch (e) {
-        print(e);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('ล็อกอินล้มเหลว: ${e.toString()}')),
+        );
       }
     }
   }
 
   void saveData() async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString("userName", _usernameController.text);
+    await prefs.setString("password", _passwordController.text);
+  }
 
-  await prefs.setString("userName", _usernameController.text);
-  await prefs.setString("password", _passwordController.text);
-}
+  String? userName;
+  String? password;
 
-String? userName;
-String? password;
+  void getData() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userName = prefs.getString("userName");
+      password = prefs.getString("password");
+    });
+  }
 
-void getData() async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-
-  setState(() {
-  userName = prefs.getString("userName");
-  password = prefs.getString("password");
-  });
-
-
-}
+  @override
+  void initState() {
+    super.initState();
+    getData();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,73 +152,21 @@ void getData() async {
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-  onPressed: () {
-    // ตรวจสอบค่าของทั้งชื่อผู้ใช้และรหัสผ่าน
-    if (_usernameController.text.trim().isNotEmpty && 
-        _passwordController.text.trim().isNotEmpty) {
-      // บันทึกข้อมูลใน shared preferences
-      saveData();
-      // นำทางไปยังหน้า Home
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => MyHomePage(title: 'Home Page')),
-      );
-    } else {
-      // แสดง SnackBar หากชื่อผู้ใช้หรือรหัสผ่านว่าง
-      if (_usernameController.text.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("กรุณาพิมพ์ชื่อของคุณ")),
-        );
-      } 
-      if (_passwordController.text.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("กรุณาพิมพ์รหัสผ่านของคุณ")),
-        );
-      }
-    }
-  },
-  style: ElevatedButton.styleFrom(
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10),
-    ),
-    backgroundColor: Colors.pink, // สีพื้นหลังของปุ่ม
-  ),
-  child: const Padding(
-    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-    child: Text(
-      'Login',
-      style: TextStyle(fontSize: 18, color: Colors.white),
-    ),
-  ),
-),
-
-                /*ElevatedButton(
                   onPressed: _login,
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 40,
-                      vertical: 15,
-                    ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    backgroundColor: Colors.pinkAccent, // สีของปุ่ม
-                    shadowColor: Colors.pinkAccent.withOpacity(0.5),
-                    elevation: 10.0,
+                    backgroundColor: Colors.pink,
                   ),
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    child: Text(
+                      'Login',
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
                   ),
-                ),*/
-                // if (_errorMessage.isNotEmpty)
-                //   Padding(
-                //     padding: const EdgeInsets.only(top: 16),
-                //     child: Text(
-                //       _errorMessage,
-                //       style: const TextStyle(color: Colors.red, fontSize: 16),
-                //     ),
-                //   ),
+                ),
                 TextButton(
                   onPressed: () {
                     Navigator.push(
